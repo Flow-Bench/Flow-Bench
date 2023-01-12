@@ -14,6 +14,7 @@ namespace flowbench {
 class Divider {
 public:
     std::array<uint32_t, QD_VERTEX_CNT> result;
+    Divider() = default;
     explicit Divider(uint32_t n);
 };
 

@@ -18,6 +18,6 @@ constexpr const char* NORMAL_PROFILE_PATH = "normal_profile.txt";
 constexpr const char* DENSE_PROFILE_PATH = "dense_profile.txt";
 
 // default configuration
-constexpr uint32_t DEFAULT_RULE_CNT = 4096;
+constexpr uint32_t DEFAULT_RULE_CNT = 64; //4096;
 
 }

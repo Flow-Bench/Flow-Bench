@@ -22,6 +22,9 @@ public:
     // the weights are set as -fwt at the beginning
     // and during the search, if all bits of a field have been used, the weight is set to 0
 
+    // for debug
+    friend std::ostream& operator<<(std::ostream& os, const ProblemState& state);
+
 public:
     ProblemState(uint32_t n, uint32_t p, bool allowWildcard, std::unique_ptr<UDRule> parent);
 };
@@ -43,6 +46,22 @@ ProblemState::ProblemState(uint32_t n, uint32_t p, bool allowWildcard, std::uniq
             }
         }
     }
+}
+
+std::ostream& operator<<(std::ostream& os, const ProblemState& state) {
+    os << "n = " << state.n << ", p = " << state.p << ", k = " << (int)state.k << ", allowWildcard = " << state.allowWildcard << std::endl;
+    os << "parent = " << *state.parent << std::endl;
+    os << "availableWidths = ";
+    for (uint8_t i = 0; i < state.availableWidths.size(); i++) {
+        os << (int)state.availableWidths[i] << " ";
+    }
+    os << std::endl;
+    os << "fieldWeights = ";
+    for (uint8_t i = 0; i < state.fieldWeights.size(); i++) {
+        os << state.fieldWeights[i] << " ";
+    }
+    os << std::endl;
+    return os;
 }
 
 }

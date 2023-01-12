@@ -24,7 +24,6 @@ public:
         return std::make_unique<EmField>(*this);
     }
 
-protected:
     T getMin() const override {
         if (wildcard) {
             return getZeroOf<T>();
@@ -72,7 +71,7 @@ public:
 
 public:
     // EM fields do not contribute to the QuadDag relationship
-    virtual bool difference(const MatchField& other, std::vector<std::unique_ptr<MatchField>>& out) const override {
+    bool difference(const MatchField& other, std::vector<std::unique_ptr<MatchField>>& out) const override {
         out.push_back(clone());
         return true;
     }

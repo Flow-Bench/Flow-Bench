@@ -9,7 +9,7 @@
 #include "random_selector.hpp"
 #include "quad_dag_profile.hpp"
 #include "normal_distribution.hpp"
-#include "divider.hpp"
+#include "divider_manager.hpp"
 #include "problem_state.hpp"
 #include "parameter_calculator.hpp"
 
@@ -21,6 +21,9 @@ private:
     constexpr static double mean = 0.0;
     constexpr static double variance = (QD_VERTEX_CNT / 2.0) * (QD_VERTEX_CNT / 2.0);
     const static NormalDistribution dist;
+
+    // weights for selection
+    std::vector<double> weights;
 
 public:
     VirtualRuleSelector() = default;
@@ -44,11 +47,11 @@ const NormalDistribution VirtualRuleSelector::dist(mean, variance);
 
 void VirtualRuleSelector::select(ProblemState& state, const QuadDagProfile& profile) {
     uint32_t n = state.n;
-    uint8_t p = state.p;
+    uint32_t p = state.p;
     uint8_t p1 = profile.getTotalParameter();
     result.clear();
     parameters.clear();
-    Divider divider(n - QD_VERTEX_CNT);
+    const auto& divider = DividerManager::getInstance().getDivider(n - QD_VERTEX_CNT);
     uint32_t sumOfMaxParameters = 0;
     for (uint32_t i = 0; i < QD_VERTEX_CNT; i++) {
         sumOfMaxParameters += ParameterCalculator::getInstance().at(divider.result[i]);
@@ -58,7 +61,7 @@ void VirtualRuleSelector::select(ProblemState& state, const QuadDagProfile& prof
     uint8_t Mp2 = profile.getVirtualRules().getMaxParameter();
     uint8_t mp2 = profile.getVirtualRules().getMinParameter();
     uint8_t candidateCount = profile.getVirtualRules().size();
-    std::vector<double> weights(candidateCount);
+    weights.resize(candidateCount);
     for (uint8_t i = 0; i < QD_VERTEX_CNT; i++) {
         if (divider.result[i] == 0) {
             continue;
@@ -76,10 +79,12 @@ void VirtualRuleSelector::select(ProblemState& state, const QuadDagProfile& prof
         for (uint8_t j = 0; j < candidateCount; j++) {
             uint8_t p2 = profile.getVirtualRules().getParameter(j);
             if (p2 >= minP2 && p2 <= maxP2) {
-                weights[j] += dist.getProbability(p2 - alpha2);
+                weights[j] = dist.getProbability(p2 - alpha2);
+            } else {
+                weights[j] = 0.0;
             }
         }
-        uint8_t index = RandomSelector::getInstance().select(weights);
+        uint32_t index = RandomSelector::getInstance().select(weights);
         result.push_back(index);
         p -= divider.result[i] * profile.getVirtualRules().getParameter(index);
     }
@@ -109,7 +114,8 @@ void VirtualRuleSelector::select(ProblemState& state, const QuadDagProfile& prof
             }
         }
     } else {
-        parameters.resize(result.size(), 0);
+        parameters.resize(result.size());
+        std::fill(parameters.begin(), parameters.end(), 0);
     }
 }
 

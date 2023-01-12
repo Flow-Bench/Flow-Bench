@@ -133,8 +133,7 @@ void CandidateRuleSet::generateVirtualRulesProfile(const CandidateRuleSet& solid
 void CandidateRuleSet::readRule(std::istream& is) {
     auto rule = std::make_unique<CandidateRule>();
     std::string _, temp;
-    uint8_t x;
-    is >> _;
+    uint32_t x;
     for (uint8_t i = 0; i < QD_FIELD_CNT; i++) {
         is >> temp;
         rule->setField(i, std::make_unique<LpmField<Int32>>(temp));

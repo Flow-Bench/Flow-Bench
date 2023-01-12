@@ -26,6 +26,10 @@ public:
         return std::make_unique<Int128>(*this);
     }
 
+    uint32_t getValue() const override {
+        return low;
+    }
+
     // convert Int32 to Int128
     Int128(const Int32& other) : high(static_cast<uint64_t>(other.getValue()) << 32), low(0) {}
     Int128& operator=(const Int32& other) {

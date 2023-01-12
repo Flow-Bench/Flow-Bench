@@ -17,8 +17,9 @@
 
 #include "exception.hpp"
 #include "trace.hpp"
-#include "rule_set.hpp"
+#include "rule_set_ud_index.hpp"
 #include "rule_splitter.hpp"
+#include "rule_output.hpp"
 
 namespace flowbench {
 
@@ -27,24 +28,24 @@ private:
     Trace trace;
 
 public:
-    const Trace& operator()(UDRuleSet& ruleSet, const std::vector<std::vector<uint32_t>>& ruleFlowAllocation);
+    const Trace& operator()(UDRuleSetWithIndex& ruleSet, const std::vector<std::vector<uint32_t>>& ruleFlowAllocation);
 
 private:
-    void generateFlows(std::unique_ptr<UDRule> rule, const std::vector<uint32_t>& flowAllocation);
+    void generateFlows(std::unique_ptr<UDRule> rule, uint32_t ruleIndex, const std::vector<uint32_t>& flowAllocation);
 };
 
-const Trace& FlowMapping::operator()(UDRuleSet& ruleSet, const std::vector<std::vector<uint32_t>>& ruleFlowAllocation) {
+const Trace& FlowMapping::operator()(UDRuleSetWithIndex& ruleSet, const std::vector<std::vector<uint32_t>>& ruleFlowAllocation) {
     trace.clear();
     for (uint32_t i = 0; i < ruleSet.size(); i++) {
         if (ruleSet[i] != nullptr) {
-            generateFlows(std::move(ruleSet[i]), ruleFlowAllocation[i]);   
+            generateFlows(std::move(ruleSet[i]), ruleSet.getRuleIndex(i), ruleFlowAllocation[i]);   
         }
     }
     std::random_shuffle(trace.begin(), trace.end());
     return trace;
 }
 
-void FlowMapping::generateFlows(std::unique_ptr<UDRule> rule, const std::vector<uint32_t>& flowAllocation) {
+void FlowMapping::generateFlows(std::unique_ptr<UDRule> rule, uint32_t ruleIndex, const std::vector<uint32_t>& flowAllocation) {
     uint32_t flowCount = flowAllocation.size();
     std::queue<std::unique_ptr<UDRule>> rules;
     rules.push(std::move(rule));
@@ -65,10 +66,10 @@ void FlowMapping::generateFlows(std::unique_ptr<UDRule> rule, const std::vector<
     while (!rules.empty()) {
         auto rule = std::move(rules.front());
         rules.pop();
-        Flow flow(*rule);
+        Flow flow(*rule, ruleIndex);
         // duplicate the flow according to the flow allocation
         for (uint32_t i = 0; i < flowAllocation[flowIndex]; i++) {
-            trace.push_back(flow.clone());
+            trace.push_back(std::move(flow.clone()));
         }
         flowIndex++;
     }

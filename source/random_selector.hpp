@@ -13,15 +13,18 @@ namespace flowbench {
 class RandomSelector : public Singleton<RandomSelector> {
 public:
     RandomSelector() = default;
-    uint32_t select(auto&& weights) const;
+
+    template <typename T> // T is a container, vector or array
+    uint32_t select(T weights) const;
 };
 
-uint32_t RandomSelector::select(auto&& weights) const {
-    auto sum = std::accumulate(weights.begin(), weights.end(), 0);
+template <typename T>
+uint32_t RandomSelector::select(T weights) const {
+    double sum = std::accumulate(weights.begin(), weights.end(), 0.0);
     if (sum == 0) {
         throw NoCandidateError();
     }
-    auto r = Random::getInstance().nextDouble(0, sum);
+    double r = Random::getInstance().nextDouble(0, sum);
     for (uint32_t i = 0; i < weights.size(); i++) {
         r -= weights[i];
         if (r <= 0) {

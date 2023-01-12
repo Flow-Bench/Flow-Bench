@@ -7,6 +7,7 @@
 #include "rule_type_ipv4.hpp"
 #include "rule_type_ipv6.hpp"
 #include "rule_type_openflow_1_0.hpp"
+#include "protocol.hpp"
 
 namespace flowbench {
 

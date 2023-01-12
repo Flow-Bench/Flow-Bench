@@ -13,15 +13,13 @@
 // the total time of the algorithm is O(n)
 
 #include "singleton.hpp"
-#include "divider.hpp"
+#include "divider_manager.hpp"
 
 namespace flowbench {
 
 class ParameterCalculator : public Singleton<ParameterCalculator> {
 private:
-    constexpr static std::array<uint32_t, QD_VERTEX_CNT+1> remainder {
-        0, 0, 1, 3, 6
-    };
+    const static std::array<uint32_t, QD_VERTEX_CNT+1> remainder;
 
     std::unique_ptr<uint32_t[]> mp;
 
@@ -43,12 +41,17 @@ uint32_t ParameterCalculator::at(uint32_t n) {
     }
     if (mp[n] == 0) {
         mp[n] = QD_VERTEX_CNT * (n - QD_VERTEX_CNT) + remainder[QD_VERTEX_CNT];
-        Divider d(n - QD_VERTEX_CNT);
+        const auto& d = DividerManager::getInstance().getDivider(n - QD_VERTEX_CNT);
+        // Divider d(n - QD_VERTEX_CNT);
         for (uint8_t i = 0; i < QD_VERTEX_CNT; i++) {
             mp[n] += at(d.result[i]);
         }
     }
     return mp[n];
 }
+
+const std::array<uint32_t, QD_VERTEX_CNT+1> ParameterCalculator::remainder =  {
+    0, 0, 1, 3, 6
+};
 
 }

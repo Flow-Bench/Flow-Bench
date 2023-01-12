@@ -10,6 +10,7 @@ int main(int argc, char** argv) {
     std::ifstream is(flowbench::TraceConfiguration::getInstance().getInputFilePath());
     flowbench::RulePool::setInstance(is);
     is.close();
+    flowbench::TraceConfiguration::getInstance().print(std::cout);
     std::ofstream os(flowbench::TraceConfiguration::getInstance().getOutputFilePath());
     double time = flowbench::reportTime([&]() {
         flowbench::TraceGenerator::getInstance().generate(os);

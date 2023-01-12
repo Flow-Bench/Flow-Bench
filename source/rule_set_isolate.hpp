@@ -34,10 +34,11 @@ public:
     // 1. find the different fields between r and the given rule
     // 2. calculate the difference of the different fields
     // 3. make a Cartesian product of the different fields
-    void splitBy(const UDRule& rule);
+    // if cannot split, return false
+    bool splitBy(const UDRule& rule);
 };
 
-void IsolateRuleSet::splitBy(const UDRule& rule) {
+bool IsolateRuleSet::splitBy(const UDRule& rule) {
     IsolateRuleSet temp;
     for (uint32_t i = 0; i < size(); i++) {
         auto& r = getRule(i);
@@ -50,6 +51,10 @@ void IsolateRuleSet::splitBy(const UDRule& rule) {
         }
     }
     *this = std::move(temp);
+    if (size() == 0) {
+        return false;
+    }
+    return true;
 }
 
 bool IsolateRuleSet::getDifferentFields(const UDRule& r1, const UDRule& r2) {

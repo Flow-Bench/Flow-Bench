@@ -135,8 +135,9 @@ Rule<T>::Rule() {
 
 template <class T>
 Rule<T>::Rule(const Rule& other) {
+    fields.resize(getFieldCount());
     for (uint8_t i = 0; i < getFieldCount(); i++) {
-        fields.push_back(std::move(other.getField(i).clone()));
+        fields[i] = std::move(other.getField(i).clone());
     }
 }
 

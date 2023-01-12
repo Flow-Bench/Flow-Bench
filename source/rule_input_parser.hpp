@@ -27,11 +27,11 @@ T parseHexString(const std::string& str, uint8_t width) {
     // omit "0x"
     for (uint8_t i = 2; i < str.size(); i++) {
         if (str[i] >= '0' && str[i] <= '9') {
-            value += bit * (str[i] - '0');
+            value |= bit * (str[i] - '0');
         } else if (str[i] >= 'a' && str[i] <= 'f') {
-            value += bit * (str[i] - 'a' + 10);
+            value |= bit * (str[i] - 'a' + 10);
         } else if (str[i] >= 'A' && str[i] <= 'F') {
-            value += bit * (str[i] - 'A' + 10);
+            value |= bit * (str[i] - 'A' + 10);
         }
         bit >>= 4;
     }

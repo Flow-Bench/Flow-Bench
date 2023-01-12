@@ -35,7 +35,7 @@ public:
 
 private:
     // initialize the global problem
-    bool initialize() {
+    void initialize() {
         while (!subProblems.empty()) {
             subProblems.pop();
         }
@@ -60,10 +60,15 @@ bool GlobalProblem::solve() {
     Partition* partition = &SparsePartition::getInstance();
     if (p > ParameterCalculator::getInstance().at(n)) {
         partition = &DensePartition::getInstance();
+        std::cout << "The problem is dense." << std::endl;
+    } else {
+        std::cout << "The problem is sparse." << std::endl;
     }
     do {
         initialize();
+        std::cout << "initializing the global problem..." << std::endl;
         partition->exportOrigins(finalSet, subProblems);
+        std::cout << "export origins: " << subProblems.size() << std::endl;
         if (solveAllSubProblems()) {
             solved = true;
             return true;

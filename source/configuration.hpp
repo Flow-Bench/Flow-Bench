@@ -10,13 +10,14 @@
 #include "singleton.hpp"
 #include "protocol.hpp"
 #include "rule_output_style.hpp"
+#include "task.hpp"
 
 namespace flowbench {
 
 class Configuration : public Singleton<Configuration> {
 private:
     // the number of rules in the flow table (-n)
-    uint32_t ruleCount;
+    uint32_t ruleCount = 0;
 
     // the output file path (-o)
     std::string outputFilePath;

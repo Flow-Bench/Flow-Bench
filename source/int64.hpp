@@ -24,6 +24,10 @@ public:
         return std::make_unique<Int64>(*this);
     }
 
+    uint32_t getValue() const override {
+        return value;
+    }
+
     // convert Int32 to Int64
     Int64(const Int32& other) : value(static_cast<uint64_t>(other.getValue()) << 32) {}
     Int64& operator=(const Int32& other) {

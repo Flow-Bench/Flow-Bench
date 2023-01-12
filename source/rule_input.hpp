@@ -6,6 +6,7 @@
 
 #include "rule_input_parser.hpp"
 #include "rule_format.hpp"
+#include "rule.hpp"
 
 namespace flowbench {
 
@@ -68,7 +69,7 @@ void LpmField<T>::load(std::istream& is) {
             throw std::invalid_argument("invalid classbench rule");
         }
         prefixLength = std::stoi(str.substr(index + 1));
-        ifw (width == 32) {
+        if (width == 32) {
             // for IPv4, we need to convert the prefix length to the number of bytes
             auto dotIndex = str.find('.');
             uint32_t prefixValue = 0;
@@ -89,7 +90,7 @@ template <class T>
 void RmField<T>::load(std::istream& is) {
     static std::string min, _, max;
     is >> min;
-    if (str == "R") {
+    if (min[0] == 'R') {
         is >> min;
         RuleFormat::inputFormat.setStyle(RuleInputStyle::FlowBench);
     } else if (min[0] == '@') {
@@ -98,8 +99,8 @@ void RmField<T>::load(std::istream& is) {
     }
     is >> _ >> max;
     uint8_t width = RuleFormat::inputFormat.getWidth();
-    start = parseDecimalString<T>(min);
-    end = parseDecimalString<T>(max);
+    start = parseDecimalString<T>(min, width);
+    end = parseDecimalString<T>(max, width);
 }
 
 std::istream& operator>>(std::istream& is, MatchField& field) {
@@ -109,7 +110,7 @@ std::istream& operator>>(std::istream& is, MatchField& field) {
 
 template <class T> // where T : RuleType
 std::istream& operator>>(std::istream& is, Rule<T>& rule) {
-    for (int8_t i = 0; i < rule.getFieldCount(); i++) {
+    for (uint8_t i = 0; i < rule.getFieldCount(); i++) {
         RuleFormat::inputFormat.setWidth(rule.getRuleType().getFieldWidth(i));
         rule.getField(i).load(is);
     }

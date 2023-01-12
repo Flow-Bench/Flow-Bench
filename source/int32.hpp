@@ -109,7 +109,7 @@ public:
         return value == UINT32_MAX;
     }
 
-    uint32_t getValue() const {
+    uint32_t getValue() const override {
         return value;
     }
 

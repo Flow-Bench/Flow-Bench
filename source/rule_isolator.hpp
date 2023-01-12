@@ -21,20 +21,32 @@ public:
 
 std::unique_ptr<UDRuleSet> RuleIsolator::operator()() {
     auto ruleSet = std::make_unique<UDRuleSet>();
-    if (TraceConfiguration::getInstance().enableFastMode()) {
-        for (const auto& rule : RulePool::getInstance()) {
-            ruleSet->push_back(rule->clone());
-        }
-    } else {
+    bool enableFastMode = TraceConfiguration::getInstance().enableFastMode();
+    if (!enableFastMode) {
         std::vector<IsolateRuleSet> isolateRuleSets;
         for (const auto& rule : RulePool::getInstance()) {
             for (auto& isolateRuleSet : isolateRuleSets) {
-                isolateRuleSet.splitBy(*rule);
+                if (!isolateRuleSet.splitBy(*rule)) {
+                    enableFastMode = true;
+                    break;
+                }
             }
             isolateRuleSets.emplace_back(*rule);
+            if (enableFastMode) {
+                break;
+            }
         }
-        for (auto& isolateRuleSet : isolateRuleSets) {
-            ruleSet->push_back(std::move(isolateRuleSet[0]));
+        if (!enableFastMode) {
+            for (auto& isolateRuleSet : isolateRuleSets) {
+                ruleSet->push_back(std::move(isolateRuleSet[0]));
+            }
+        } else {
+            ruleSet->clear();
+        }
+    }
+    if (enableFastMode) {
+        for (const auto& rule : RulePool::getInstance()) {
+            ruleSet->push_back(rule->clone());
         }
     }
     ruleSet->sortByAvailableWidth();

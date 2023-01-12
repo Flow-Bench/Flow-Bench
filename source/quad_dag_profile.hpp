@@ -92,14 +92,11 @@ public:
 };
 
 bool QuadDagProfile::generate(const QuadDagAnalyzer& analyzer, QuadDagInstantiater& instantiater, QuadDagVirtualizer& virtualizer) {
-    // std::cout << "Generating profile..." << std::endl;
     solidRules = instantiater(analyzer);
     if (solidRules == nullptr) {
         return false;
     }
-    // std::cout << "Instantiation done." << std::endl;
     solidRules->generateSolidRulesProfile(analyzer.getDag());
-    // std::cout << "Solid rules profile done." << std::endl;
     virtualRules = virtualizer(*solidRules);
     virtualRules->generateVirtualRulesProfile(*solidRules);
     generateGlobalInfo();
@@ -137,8 +134,13 @@ QuadDagProfile::QuadDagProfile(std::istream& is) {
     is >> _ >> actualFieldCount;
     is >> _ >> totalBitWidth;
     is >> _;
+    totalDependencyLength -= '0';
+    totalEdgeCount -= '0';
+    actualFieldCount -= '0';
+    totalBitWidth -= '0';
     for (uint8_t i = 0; i < QD_FIELD_CNT; i++) {
         is >> fieldBitWidths[i];
+        fieldBitWidths[i] -= '0';
     }
     while (is >> temp, temp != "END") {
         if (temp == "SR") {
@@ -147,6 +149,22 @@ QuadDagProfile::QuadDagProfile(std::istream& is) {
             virtualRules->readRule(is);
         }
     }
+}
+
+std::ostream& operator<<(std::ostream& os, const QuadDagProfile& profile) {
+    os << "DependencyLength " << (int) profile.getTotalDependencyLength() << "\n";
+    os << "EdgeCount        " << (int) profile.getTotalEdgeCount() << "\n";
+    os << "Wildcard         " << (int) profile.getExistWildcard() << "\n";
+    os << "FieldCount       " << (int) profile.getActualFieldCount() << "\n";
+    os << "BitWidth         " << (int) profile.getTotalBitWidth() << "\n";
+    os << "FieldBitWidth    ";
+    for (uint8_t field = 0; field < QD_FIELD_CNT; field++) {
+        os << (int) profile.getFieldBitWidth(field) << " ";
+    }
+    os << "\n";
+    profile.getSolidRules().printRules(os, "S");
+    profile.getVirtualRules().printRules(os, "V");
+    return os;
 }
 
 }

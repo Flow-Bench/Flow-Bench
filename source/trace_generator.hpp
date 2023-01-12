@@ -10,6 +10,7 @@
 #include "trace_allocator.hpp"
 #include "mapping_rule.hpp"
 #include "mapping_flow.hpp"
+#include "rule_output.hpp"
 
 namespace flowbench {
 

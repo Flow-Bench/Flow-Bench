@@ -60,7 +60,7 @@ void RandomPerturbator::operator()(UDRuleSet& ruleSet, const UDRule& parent) con
                             }
                         }
                         if (isValid) {
-                            rule = std::move(*newRule);
+                            ruleSet.at(j) = std::move(newRule);
                             break;
                         }
                     }

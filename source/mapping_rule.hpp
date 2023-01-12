@@ -9,69 +9,74 @@
 #include <numeric>
 
 #include "exception.hpp"
-#include "rule_set.hpp"
+#include "rule_set_ud_index.hpp"
 
 namespace flowbench {
 
 class RuleMapping : public Singleton<RuleMapping> {
 private:
     // share the same index with RuleAllocator's ruleFlowAllocation
-    UDRuleSet ruleSet;
+    UDRuleSetWithIndex ruleSet;
 
     std::vector<bool> visited;
-    uint32_t findNearestUnvisited(uint32_t index) const;
+    uint32_t findNearestUnvisited(uint32_t index, uint32_t lowerBound) const;
 
 public:
     RuleMapping() = default;
 
-    UDRuleSet& operator()(UDRuleSet& isolateRuleSet, std::vector<std::vector<uint32_t>>& ruleFlowAllocation);
+    UDRuleSetWithIndex& operator()(UDRuleSet& isolateRuleSet, std::vector<std::vector<uint32_t>>& ruleFlowAllocation);
 };
 
-uint32_t RuleMapping::findNearestUnvisited(uint32_t index) const {
+uint32_t RuleMapping::findNearestUnvisited(uint32_t index, uint32_t lowerBound) const {
     uint32_t r = index;
     while (visited[r] && r < visited.size()) {
         r++;
     }
     if (r == visited.size()) {
         r = index;
-        while (r < visited.size() && visited[r]) {
+        while (r >= lowerBound && r < visited.size() && visited[r]) {
             r--;
         }
     }
     return r;
 }
 
-UDRuleSet& RuleMapping::operator()(UDRuleSet& isolateRuleSet, std::vector<std::vector<uint32_t>>& ruleFlowAllocation) {
+UDRuleSetWithIndex& RuleMapping::operator()(UDRuleSet& isolateRuleSet, std::vector<std::vector<uint32_t>>& ruleFlowAllocation) {
     ruleSet.clear();
     visited.clear();
     visited.resize(isolateRuleSet.size());
     std::fill(visited.begin(), visited.end(), false);
     for (auto& allocation : ruleFlowAllocation) {
         if (allocation.empty()) {
-            ruleSet.push_back(nullptr);
+            continue;
         }
         double log2FlowCount = std::log2(allocation.size());
-        uint32_t maxRuleIndex = std::lower_bound(isolateRuleSet.begin(), isolateRuleSet.end(), log2FlowCount, [](const std::unique_ptr<UDRule> rule, double log2FlowCount) {
-            return rule->getAvailableWidth() < log2FlowCount;
-        }) - isolateRuleSet.begin(), ruleIndex = 0;
-        if (maxRuleIndex > 0) {
-            // no rule can hold the allocation, merge the allocation into one
-            ruleIndex = Random::getInstance().nextInt32(0, maxRuleIndex - 1);
-            ruleIndex = findNearestUnvisited(ruleIndex);
+        // isolateRuleSet is sorted by available width
+        // find the first rule whose available width is larger than log2FlowCount
+        // then the rule before it is the largest rule that can hold the allocation
+        uint32_t lowerBound = std::lower_bound(isolateRuleSet.begin(), isolateRuleSet.end(), log2FlowCount,
+                                               [](const std::unique_ptr<UDRule>& rule, double value) {
+                                                   return rule == nullptr || rule->getAvailableWidth() < value;
+                                               }) - isolateRuleSet.begin();
+        uint32_t ruleIndex;
+        if (lowerBound < isolateRuleSet.size()) {
+            ruleIndex = Random::getInstance().nextInt32(lowerBound, isolateRuleSet.size() - 1);
+            ruleIndex = findNearestUnvisited(ruleIndex, lowerBound);
         }
-        if (ruleIndex >= isolateRuleSet.size() || maxRuleIndex == 0) {
+        if (lowerBound == isolateRuleSet.size() || ruleIndex < lowerBound || ruleIndex >= isolateRuleSet.size()) {
+            // no rule can hold the allocation, merge the allocation into one
             uint32_t sum = std::accumulate(allocation.begin(), allocation.end(), 0);
             allocation.clear();
             allocation.push_back(sum);
             ruleIndex = Random::getInstance().nextInt32(0, isolateRuleSet.size() - 1);
-            ruleIndex = findNearestUnvisited(ruleIndex);
+            ruleIndex = findNearestUnvisited(ruleIndex, 0);
         }
         if (ruleIndex >= isolateRuleSet.size()) {
             // still no rule can hold the allocation, error
             throw NoRuleError();
         }
         visited[ruleIndex] = true;
-        ruleSet.push_back(std::move(isolateRuleSet[ruleIndex]));
+        ruleSet.push_back(std::move(isolateRuleSet[ruleIndex]), ruleIndex);
     }
     return ruleSet;
 }

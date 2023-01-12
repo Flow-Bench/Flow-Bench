@@ -49,3 +49,7 @@ lab
 
 # pictures
 *.pdf
+
+# generated files
+*.txt
+*.txt_trace

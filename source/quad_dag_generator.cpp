@@ -5,6 +5,7 @@
 #include "quad_dag_instantiater_normal.hpp"
 #include "quad_dag_instantiater_dense.hpp"
 #include "time_report.hpp"
+#include "rule_input.hpp"
 
 int main(int argc, char** argv) {
     double time = flowbench::reportTime([&]() {

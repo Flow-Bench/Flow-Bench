@@ -29,8 +29,8 @@ public:
     // convert Candidate rule to User-defined rule
     void convertFrom(const MatchField& other) override {
         const LpmField<Int32>& otherLpm = dynamic_cast<const LpmField<Int32>&>(other);
-        prefix = otherLpm.prefix;
-        prefixLength = otherLpm.prefixLength;
+        prefix = otherLpm.getPrefix();
+        prefixLength = otherLpm.getPrefixLength();
     }
 
     void setParent(const MatchField& parent) override;
@@ -48,7 +48,7 @@ private:
         }
     }
 
-protected:
+public:
     T getMin() const override {
         return prefix;
     }
@@ -84,7 +84,7 @@ public:
     void addSuffix(const T& suffix, uint8_t suffixLength) override;
 
 public:
-    virtual bool difference(const MatchField& other, std::vector<std::unique_ptr<MatchField>>& out) const override;
+    bool difference(const MatchField& other, std::vector<std::unique_ptr<MatchField>>& out) const override;
 
 public:
     // output format for LPM fields
@@ -158,13 +158,13 @@ void LpmField<T>::setParent(const MatchField& parent) {
 
 template <class T>
 bool LpmField<T>::difference(const MatchField& other, std::vector<std::unique_ptr<MatchField>>& out) const  {
-    if (!cover(other)) {
+    if (!this->cover(other)) {
         return false;
     }
-    std::unique_ptr<LpmField<T>> current = clone();
-    while (current != other) {
-        auto left = current.clone();
-        auto right = current.clone();
+    auto current = std::make_unique<LpmField<T>>(*this);
+    while (*current != other) {
+        auto left = std::make_unique<LpmField<T>>(*current);
+        auto right = std::make_unique<LpmField<T>>(*current);
         left->addSuffix(0, 1);
         right->addSuffix(1, 1);
         if (left->cover(other)) {

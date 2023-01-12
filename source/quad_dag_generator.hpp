@@ -35,19 +35,7 @@ void QuadDagGenerator<T>::operator()(std::ostream& os) {
 template <class T>
 void QuadDagGenerator<T>::print(std::ostream& os) const {
     os << "DAG              " << analyzer.getDag().toString() << "\n";
-    os << "DependencyLength " << (int) profile.getTotalDependencyLength() << "\n";
-    os << "EdgeCount        " << (int) profile.getTotalEdgeCount() << "\n";
-    os << "Wildcard         " << (int) profile.getExistWildcard() << "\n";
-    os << "FieldCount       " << (int) profile.getActualFieldCount() << "\n";
-    os << "BitWidth         " << (int) profile.getTotalBitWidth() << "\n";
-    os << "FieldBitWidth    ";
-    for (uint8_t field = 0; field < QD_FIELD_CNT; field++) {
-        os << (int) profile.getFieldBitWidth(field) << " ";
-    }
-    os << "\n";
-    profile.getSolidRules().printRules(os, "S");
-    profile.getVirtualRules().printRules(os, "V");
-    os << "END\n\n";
+    os << profile << "END\n\n";
 }
 
 }

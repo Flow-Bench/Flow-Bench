@@ -16,6 +16,8 @@
 
 namespace flowbench {
 
+static auto& virtualRuleIndexes = VirtualRuleSelector::getInstance().result;
+
 class VirtualRuleSplitter : public Singleton<VirtualRuleSplitter> {
 public:
     VirtualRuleSplitter() = default;
@@ -33,30 +35,36 @@ public:
     //          if size of the result > 4, then there are virtual rules
     std::unique_ptr<CandidateRuleSet> split(const ProblemState& state, const QuadDagProfile& profile);
 
+private:
+    std::vector<uint32_t> counter;
+    std::vector<bool> conflict;
 };
 
 std::unique_ptr<CandidateRuleSet> VirtualRuleSplitter::split(const ProblemState& state, const QuadDagProfile& profile) {
-    uint32_t n = state.n;
+    uint32_t n = state.n, count = 0;
     auto result = std::make_unique<CandidateRuleSet>();
+    if (n <= QD_VERTEX_CNT) {
+        count = n;
+    } else {
+        count = QD_VERTEX_CNT + virtualRuleIndexes.size();
+    }
+    result->resize(count);
     const auto& solidRules = profile.getSolidRules();
     const auto& virtualRules = profile.getVirtualRules();
-    for (uint8_t i = 0; i < std::min<uint32_t>(n, QD_VERTEX_CNT); i++) {
-        result->push_back(solidRules.getRule(i).clone());
+    for (uint32_t i = 0; i < std::min<uint32_t>(n, QD_VERTEX_CNT); i++) {
+        result->at(i) = solidRules.getRule(i).clone();
     }
     if (n <= QD_VERTEX_CNT) {
         return result;
     }
-    uint8_t conflictSolveFieldIndex = Random::getInstance().nextInt32(0, profile.getActualFieldCount() - 1);
-    uint8_t conflictWidth = 0;
-    uint8_t maxCounter = 0;
-    std::vector<uint8_t> counter;
-    std::vector<bool> conflict;
+    uint32_t conflictSolveFieldIndex = Random::getInstance().nextInt32(0, profile.getActualFieldCount() - 1);
+    uint32_t conflictWidth = 0;
+    uint32_t maxCounter = 0;
     counter.resize(virtualRules.size());
     conflict.resize(virtualRules.size());
     std::fill(counter.begin(), counter.end(), 0);
     std::fill(conflict.begin(), conflict.end(), false);
-    const auto& virtualRuleIndexes = VirtualRuleSelector::getInstance().result;
-    allowWildcard.clear();
+    allowWildcard.resize(virtualRuleIndexes.size());
     for (uint8_t i = 0; i < virtualRuleIndexes.size(); i++) {
         uint8_t index = virtualRuleIndexes[i];
         counter[index]++;
@@ -76,8 +84,8 @@ std::unique_ptr<CandidateRuleSet> VirtualRuleSplitter::split(const ProblemState&
         if (conflictWidth > 0 && conflict[index]) {
             rule->getFieldAs<LpmField<Int32>>(conflictSolveFieldIndex).addSuffix(Int32(--counter[index]), conflictWidth);
         }
-        result->push_back(std::move(rule));
-        allowWildcard.push_back(!virtualRules.isSolid(index) || conflict[index]);
+        result->at(i + QD_VERTEX_CNT) = std::move(rule);
+        allowWildcard[i] = (!virtualRules.isSolid(index) || conflict[index]);
     }
     return result;
 }

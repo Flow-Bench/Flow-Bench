@@ -1,4 +1,6 @@
-# FlowBench Introduction
+# FlowBench
+
+## Introduction
 
 This repository is the open source version for FlowBench. 
 
@@ -8,4 +10,26 @@ FlowBench works based on the Directed Acyclic Graph (DAG) abstraction. Each rule
 
 You can find the complete documentation in `\doc` directory.
 
-We will regularly check and reply the issues on this repository. You can also contact us by e-mail: *Bin Liu* (lmyujie@gmail.com) or *Zhikang Chen* (clazychen@gmail.com).
+## Installation
+
+Requirements: C++ compiler supports C++14 standard.
+
+```shell
+cd source
+g++ -std=c++14 -O2 quad_dag_generator.cpp -o quad_dag_generator
+quad_dag_generator
+g++ -std=c++14 -O2 rule_set_generator.cpp -o flowbench
+g++ -std=c++14 -O2 trace_generator.cpp -o flowbench-trace
+```
+
+## Contact us
+
+FlowBench is designed by the following authors:
+
+* Zhikang Chen, Tsinghua University
+* Ying Wan, Tsinghua University
+* Ting Zhang, Tsinghua University
+* Haoyu Song, Futurewei Technologies
+* Bin Liu (corresponding author), Tsinghua University
+
+We will regularly check and reply the issues on this repository. You can also contact us by e-mail: corresponding author *Bin Liu* (lmyujie@gmail.com) or the first author *Zhikang Chen* (clazychen@gmail.com).

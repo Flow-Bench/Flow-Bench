@@ -7,6 +7,7 @@
 // override the getNames function to return const std::unordered_map<Enum, const char*>*
 
 #include <unordered_map>
+#include <cstring>
 
 namespace flowbench {
 
@@ -44,9 +45,9 @@ const auto getEnumValue(const char* name) {
     if (names == nullptr) {
         return getDefaultValue<T>();
     }
-    for (auto& [value, n] : *names) {
-        if (n == name) {
-            return value;
+    for (auto it = names->begin(); it != names->end(); it++) {
+        if (strcmp(it->second, name) == 0) {
+            return it->first;
         }
     }
     return getDefaultValue<T>();

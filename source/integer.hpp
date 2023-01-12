@@ -23,6 +23,7 @@ public:
     // <<, >>, <<=, >>=
 
     virtual std::unique_ptr<Integer> clone() const = 0;
+    virtual uint32_t getValue() const = 0;
 
 public:
     // for output format, only high bits are used

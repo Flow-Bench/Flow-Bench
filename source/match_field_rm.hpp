@@ -71,8 +71,8 @@ public:
 };
 
 // RM only supports Int32
-template <class T>
-uint8_t RmField<T>::getAvailableWidth(uint8_t width) const {
+template <>
+uint8_t RmField<Int32>::getAvailableWidth(uint8_t width) const {
     uint64_t start = this->start.getValue();
     uint64_t end = this->end.getValue();
     uint64_t range = (end - start + 1) >> (32 - width);
@@ -108,9 +108,9 @@ bool RmField<T>::difference(const MatchField& other, std::vector<std::unique_ptr
     T otherMin = otherRm.getMin();
     T otherMax = otherRm.getMax();
     if (otherMin > start) {
-        out.push_back(std::make_unique<RmField<T>>(start, otherMin - T(1)));
+        out.push_back(std::make_unique<RmField<T>>(start, T(otherMin.getValue() - 1)));
     } else if (otherMax < end) {
-        out.push_back(std::make_unique<RmField<T>>(otherMax + T(1), end));
+        out.push_back(std::make_unique<RmField<T>>(T(otherMax.getValue() + 1), end));
     } else {
         return false;
     }

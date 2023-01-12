@@ -7,7 +7,7 @@
 
 namespace flowbench {
 
-class Trace : public std::vector<Flow> {
+class Trace : public std::vector<std::unique_ptr<Flow>> {
 public:
     Trace() = default;
 
@@ -19,16 +19,19 @@ void Trace::print(std::ostream& os) const {
     if (style == RuleOutputStyle::FlowBench) {
         for (const auto& flow : *this) {
             for (uint8_t i = 0; i < RuleTypeUD::getInstance().getFieldCount(); i++) {
-                os << "0x" << flow.getField(i).toHexString(RuleTypeUD::getInstance().getFieldWidth(i)) << " ";
+                os << "0x" << flow->getField(i).toHexString(RuleTypeUD::getInstance().getFieldWidth(i)) << " ";
             }
-            os << "\n";
+            os << " " << flow->getRuleIndex() << "\n";
         }
     } else if (style == RuleOutputStyle::ClassBench) {
         for (const auto& flow : *this) {
             for (uint8_t i = 0; i < RuleTypeUD::getInstance().getFieldCount(); i++) {
-                os << flow.getField(i).toDecimalString(RuleTypeUD::getInstance().getFieldWidth(i)) << ",";
+                os << flow->getField(i).toDecimalString(RuleTypeUD::getInstance().getFieldWidth(i));
+                if (i < RuleTypeUD::getInstance().getFieldCount() - 1) {
+                    os << ",";
+                }
             }
-            os << "\n";
+            os << " " << flow->getRuleIndex() << "\n";
         }
     }
 }

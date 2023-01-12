@@ -21,16 +21,16 @@
 
 namespace flowbench {
 
+const static uint8_t MAX_BIT_WIDTH = 4;
+const static uint8_t MIN_SUM_BIT_WIDTH = 2;
+const static uint8_t MAX_SUM_BIT_WIDTH = 5;
+
 class QuadDagInstantiater {
 protected:
     using Lpm32 = LpmField<Int32>;
     virtual uint8_t nextBitWidth(uint8_t bitWidth) const = 0;
 
 private:
-    constexpr static uint8_t MAX_BIT_WIDTH = 4;
-    constexpr static uint8_t MIN_SUM_BIT_WIDTH = 2;
-    constexpr static uint8_t MAX_SUM_BIT_WIDTH = 5;
-
     // the possible fields for each field
     // possibleFields[i] = the possible fields for field i, i = 0, 1, 2 (Candidate rules have 3 LPM fields)
     std::array<std::vector<Lpm32>, QD_FIELD_CNT> possibleFields;

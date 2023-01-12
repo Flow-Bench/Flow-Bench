@@ -4,6 +4,8 @@
 // when use RuleSet(ruleCount) to create a rule set
 // we do not create rule objects (must use reset to create rule objects)
 
+#include <algorithm>
+
 #include "rule.hpp"
 
 namespace flowbench {
@@ -38,9 +40,18 @@ public:
 
 public:
     void sortByAvailableWidth() {
-        std::sort(this->begin(), this->end(), [](const std::unique_ptr<Rule<T>>& a, const std::unique_ptr<Rule<T>>& b) {
-            return a->getAvailableWidth() > b->getAvailableWidth();
+        std::vector<std::pair<uint32_t, uint32_t>> ruleWidths;
+        for (uint32_t i = 0; i < this->size(); i++) {
+            ruleWidths.push_back(std::make_pair(i, getRule(i).getAvailableWidth()));
+        }
+        std::sort(ruleWidths.begin(), ruleWidths.end(), [](const std::pair<uint32_t, uint32_t>& a, const std::pair<uint32_t, uint32_t>& b) {
+            return a.second < b.second;
         });
+        std::vector<std::unique_ptr<Rule<T>>> rules;
+        for (uint32_t i = 0; i < this->size(); i++) {
+            rules.push_back(std::move(this->at(ruleWidths[i].first)));
+        }
+        this->swap(rules);
     }
 
 };
